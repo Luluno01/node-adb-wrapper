@@ -1,7 +1,6 @@
 import * as assert from 'assert'
 import { execFile as _execFile } from 'child_process'
 import { promisify } from 'util'
-import LogcatParser, { LogcatProcess } from './Logcat'
 const execFile = promisify(_execFile)
 
 
