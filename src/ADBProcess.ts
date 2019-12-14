@@ -11,6 +11,10 @@ export namespace RegExps {
   export const devices = /^List of devices attached\r?\n(?<deviceList>[\s\S]*)/
 }
 
+export class ADBWaitTimeoutError extends Error {
+  public name = 'ADBWaitTimeoutError'
+}
+
 export class ADBProcess {
 
   /**
@@ -213,6 +217,67 @@ export class ADBProcess {
     const args = [ 'reconnect' ]
     if(target) args.push(target)
     return await this.execRawAuto(args, serial)
+  }
+
+  /**
+   * Disable dm-verity checking on userdebug builds
+   * @param serial Device serial number, optional
+   */
+  public async disableVerity(serial?: string) {
+    return await this.execRawAuto([ 'disable-verity' ], serial)
+  }
+
+  /**
+   * Re-enable dm-verity checking on userdebug builds
+   * @param serial Device serial number, optional
+   */
+  public async enableVerity(serial?: string) {
+    return await this.execRawAuto([ 'enable-verity' ], serial)
+  }
+
+  /**
+   * Wait for device to be in the given state
+   * @param state Device, recovery, rescue, sideload, bootloader, or disconnect
+   * @param transport USB, local, or any (defaults to any)
+   * @param timeout Timeout for waiting
+   * @param serial Device serial number, optional
+   */
+  public waitFor(state: 'device' | 'recovery' | 'rescue' | 'sideload' | 'bootloader' | 'disconnect', transport?: 'usb' | 'local' | 'any', timeout?: number, serial?: string) {
+    return new Promise((res, rej) => {
+      const args = [ `wait-for${transport ? ('-' + transport) : ''}-${state}` ]
+      if(serial) {
+        args.splice(0, 0, '-s', serial)
+      }
+      let fullfilled = false
+      let t: ReturnType<typeof setTimeout> | null = null
+      if(timeout) {
+        t = setTimeout(() => {
+          t = null
+          fullfilled = true
+          proc.kill()
+          rej(new ADBWaitTimeoutError)
+        }, timeout)
+      }
+      const proc = _execFile(binaryName, args, (err, stdout, stderr) => {
+        if(fullfilled) return
+        if(t) {
+          clearTimeout(t)
+          t = null
+        }
+        fullfilled = true
+        if(err) rej(err)
+        else res({ stdout, stderr })
+      })
+      proc.on('error', err => {
+        if(fullfilled) return
+        if(t) {
+          clearTimeout(t)
+          t = null
+        }
+        fullfilled = true
+        rej(err)
+      })
+    })
   }
 }
 
