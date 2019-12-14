@@ -16,6 +16,10 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^12.12.17",
+    "log4js": "^6.1.0",
     "typescript": "^3.7.3"
+  },
+  "dependencies": {
+    "unlib.js": "git+https://github.com/Luluno01/unlib.js.git"
   }
 }

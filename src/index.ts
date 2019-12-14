@@ -1,5 +1,7 @@
-import ADBProcess from './ADBProcess'
+import * as _ADB from './ADBProcess'
+import * as _Logcat from './Logcat'
 
 
-export * from './ADBProcess'
-export default ADBProcess
+export const ADB = _ADB
+export default ADB
+export const Logcat = _Logcat

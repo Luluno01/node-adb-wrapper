@@ -66,8 +66,8 @@ export class ADBProcess {
     assert(match, 'Cannot get devices, please check your ADB installation')
     const deviceList = match.groups.deviceList.trim()
     return deviceList ? deviceList.split(/[\r\n]+/).map(line => {
-      const [ serial, type ] = line.split(/\s+/)
-      return { serial, type }
+      const [ serial, state ] = line.split(/\s+/)
+      return { serial, state }
     }) : []
   }
 
@@ -78,6 +78,93 @@ export class ADBProcess {
   public async shell(command: string, serial?: string) {
     assert(!command.match(/^\s*$/), 'Shell command must not be empty')
     return (await this.execRawAuto([ 'shell', command ], serial)).stdout
+  }
+
+  /**
+   * Push a single package to the device and install it
+   * @param packagePath Path to the APK file to be installed
+   * @param extraOpts Extra installation options
+   * @param serial Device serial number, optional
+   */
+  public async install(packagePath: string, extraOpts?: string[], serial?: string) {
+    let args = [ 'install' ]
+    if(extraOpts) args = args.concat(extraOpts)
+    args.push(packagePath)
+    return (await this.execRawAuto(args, serial)).stdout
+  }
+
+  /**
+   * Push multiple APKs to the device for a single package and install them
+   * @param packagePaths Paths to APK files to be installed
+   * @param extraOpts Extra installation options
+   * @param serial Device serial number, optional
+   */
+  public async installMultiple(packagePaths: string[], extraOpts?: string[], serial?: string) {
+    let args = [ 'install-multiple' ]
+    if(extraOpts) args = args.concat(extraOpts)
+    args = args.concat(packagePaths)
+    return (await this.execRawAuto(args, serial)).stdout
+  }
+
+  /**
+   * Push one or more packages to the device and install them atomically
+   * @param packagePaths Paths to APK files to be installed
+   * @param extraOpts Extra installation options
+   * @param serial Device serial number, optional
+   */
+  public async installMultiPackage(packagePaths: string[], extraOpts?: string[], serial?: string) {
+    let args = [ 'install-multi-package' ]
+    if(extraOpts) args = args.concat(extraOpts)
+    args = args.concat(packagePaths)
+    return (await this.execRawAuto(args, serial)).stdout
+  }
+
+  /**
+   * Remove this app package from the device
+   * @param pkg Package to be uninstalled
+   * @param keepDataAndCache Keep the data and cache directories
+   * @param serial Device serial number, optional
+   */
+  public async uninstall(pkg: string, keepDataAndCache?: boolean, serial?: string) {
+    const args = [ 'uninstall ']
+    if(keepDataAndCache) args.push('-k')
+    args.push(pkg)
+    return (await this.execRawAuto(args, serial)).stdout
+  }
+
+  public async logcat()  {
+    
+  }
+
+  /**
+   * Remount partitions read-write
+   * 
+   * If a reboot is required and `reboot` is `true`, the device will
+   * automatically reboot
+   * 
+   * Note that even if `reboot` is `false`, the device could still reboot
+   * @param reboot Reboot the device if required
+   * @param serial Device serial number, optional
+   */
+  public async remount(reboot?: boolean, serial?: string) {
+    const args = [ 'reboot' ]
+    if(reboot) args.push('-R')
+    return (await this.execRawAuto(args, serial)).stdout
+  }
+
+  /**
+   * Reboot the device; defaults to booting system image but supports
+   * bootloader and recovery too
+   * 
+   * Mode `sideload` reboots into recovery and automatically starts sideload
+   * mode; `sideload-auto-reboot` is the same but reboots after sideloading
+   * @param mode Target system to reboot
+   * @param serial Device serial number, optional
+   */
+  public async reboot(mode?: 'bootloader' | 'recovery' | 'sideload' | 'sideload-auto-reboot', serial?: string) {
+    const args = [ 'reboot' ]
+    if(mode) args.push(mode)
+    return (await this.execRawAuto(args, serial)).stdout
   }
 
   /**
@@ -92,11 +179,44 @@ export class ADBProcess {
   }
 
   /**
+   * Restart adbd without root permissions
+   * @param serial Device serial number, optional
+   */
+  public async unroot(serial?: string) {
+    return (await this.execRawAuto([ 'unroot' ], serial)).stdout
+  }
+
+  /**
    * Execute shell command `whoami` and return the result
    * @param serial Device serial number, optional
    */
   public async whoami(serial?: string) {
     return (await this.shell('whoami', serial)).trim()
+  }
+
+  /**
+   * Reset connection
+   * 
+   * @param target Reconnect target
+   * 
+   * If `target` is undefined:
+   * 
+   * > kick connection from host side to force reconnect
+   * 
+   * If `target` is `device`:
+   * 
+   * > kick connection from device side to force reconnect
+   * 
+   * If `target` is `offline`:
+   * 
+   * > reset offline/unauthorized devices to force reconnect
+   * 
+   * @param serial Device serial number, optional
+   */
+  public async reconnect(target?: 'device' | 'offline', serial?: string) {
+    const args = [ 'reconnect' ]
+    if(target) args.push(target)
+    return await this.execRawAuto(args, serial)
   }
 }
 
