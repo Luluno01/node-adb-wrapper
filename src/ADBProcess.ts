@@ -1,6 +1,7 @@
 import * as assert from 'assert'
 import { execFile as _execFile } from 'child_process'
 import { promisify } from 'util'
+import LogcatParser, { LogcatProcess } from './Logcat'
 const execFile = promisify(_execFile)
 
 
@@ -130,10 +131,6 @@ export class ADBProcess {
     if(keepDataAndCache) args.push('-k')
     args.push(pkg)
     return (await this.execRawAuto(args, serial)).stdout
-  }
-
-  public async logcat()  {
-    
   }
 
   /**
