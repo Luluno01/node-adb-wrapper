@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "install": "tsc"
+    "install": "tsc",
+    "logcat": "node build/scripts/logcat.js"
   },
   "keywords": [
     "adb",
@@ -16,10 +17,12 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^12.12.17",
+    "@types/yargs": "^13.0.3",
     "log4js": "^6.1.0",
     "typescript": "^3.7.3"
   },
   "dependencies": {
-    "unlib.js": "git+https://github.com/Luluno01/unlib.js.git"
+    "unlib.js": "git+https://github.com/Luluno01/unlib.js.git",
+    "yargs": "^15.0.2"
   }
 }

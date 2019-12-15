@@ -6,7 +6,8 @@ import EventBarrier from 'unlib.js/build/Sync/EventBarrier'
 import * as log4js from 'log4js'
 const logger = log4js.getLogger('logcat')
 import { EventEmitter } from 'events'
-import { Readable } from 'stream'
+import { Readable, Transform } from 'stream'
+import LineFeedTransform from './LineFeedTransform'
 
 
 export const binaryName = 'adb'
@@ -208,6 +209,7 @@ export class StreamDetachedError extends Error {
  */
 export class LogcatParser extends EventEmitter {
   protected input?: Readable
+  protected transform?: Transform
   private eventBarrier = new EventBarrier
   private bytesToRead = 0
   private cursor = 0
@@ -221,23 +223,40 @@ export class LogcatParser extends EventEmitter {
   /**
    * Constructor of `LogcatParser`
    * @param input Input readable stream
+   * @param fixLineFeeds Fix line feeds
+   * 
+   * > 0A(line feed) is being replaced by 0D0A(CR and LF) , when above command
+   * > is issued in Linux shell. \
+   * > 0A(line feed) is being replaced by 0D0D0A , when above command is
+   * > issued in windows command prompt.
+   * 
+   * See [this question](https://stackoverflow.com/questions/6410488/how-to-avoid-carriage-return-line-feed-pair)
    */
-  constructor(input: Readable) {
+  constructor(input: Readable, fixLineFeeds: boolean = true) {
     super()
-    this.attachStream(input)
+    this.attachStream(input, fixLineFeeds)
   }
 
   /**
    * Attach new input readable stream (current stream will be replaced)
    * @param input Input readable stream
+   * @param fixLineFeeds Fix line feeds
    */
-  public attachStream(input: Readable) {
+  public attachStream(input: Readable, fixLineFeeds: boolean = true) {
     this.clearBuffer()
     this.end = false
     this.detach()
-    this.input = input
-      .on('data', this._onData)
-      .on('end', this._onEnd)
+    if(fixLineFeeds) {
+      const transform = this.transform = new LineFeedTransform
+      input.pipe(transform)
+      transform
+        .on('data', this._onData)
+        .on('end', this._onEnd)
+    } else {
+      this.input = input
+        .on('data', this._onData)
+        .on('end', this._onEnd)
+    }
   }
 
   /**
@@ -245,9 +264,17 @@ export class LogcatParser extends EventEmitter {
    */
   public detach() {
     this.eventBarrier.abort('readable', new StreamDetachedError)
-    this.input
-      ?.off('data', this._onData)
-      .off('end', this._onEnd)
+    if(this.transform) {
+      this.input!.unpipe(
+        this.transform
+          .off('data', this._onData)
+          .off('end', this._onEnd)
+      )
+    } else {
+      this.input
+        ?.off('data', this._onData)
+        .off('end', this._onEnd)
+    }
   }
 
   /**
