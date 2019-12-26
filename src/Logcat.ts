@@ -246,14 +246,14 @@ export class LogcatParser extends EventEmitter {
     this.clearBuffer()
     this.end = false
     this.detach()
+    this.input = input
     if(fixLineFeeds) {
       const transform = this.transform = new LineFeedTransform
       input.pipe(transform)
-      transform
         .on('data', this._onData)
         .on('end', this._onEnd)
     } else {
-      this.input = input
+      input
         .on('data', this._onData)
         .on('end', this._onEnd)
     }
