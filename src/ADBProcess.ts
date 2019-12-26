@@ -130,7 +130,7 @@ export class ADBProcess {
    * @param serial Device serial number, optional
    */
   public async uninstall(pkg: string, keepDataAndCache?: boolean, serial?: string) {
-    const args = [ 'uninstall ']
+    const args = [ 'uninstall' ]
     if(keepDataAndCache) args.push('-k')
     args.push(pkg)
     return (await this.execRawAuto(args, serial)).stdout
