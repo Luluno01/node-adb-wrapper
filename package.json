@@ -16,13 +16,13 @@
   "author": "Untitled",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^13.1.0",
-    "@types/yargs": "^13.0.4",
-    "log4js": "^6.1.0",
-    "typescript": "^3.7.4"
+    "@types/node": "^13.11.0",
+    "@types/yargs": "^15.0.4",
+    "log4js": "^6.1.2",
+    "typescript": "^3.8.3"
   },
   "dependencies": {
     "unlib.js": "git+https://github.com/Luluno01/unlib.js.git",
-    "yargs": "^15.0.2"
+    "yargs": "^15.3.1"
   }
 }
