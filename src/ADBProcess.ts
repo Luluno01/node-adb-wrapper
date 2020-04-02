@@ -85,6 +85,26 @@ export class ADBProcess {
   }
 
   /**
+   * Push file from local to remote device
+   * @param from Local file to push
+   * @param to Remote path
+   * @param serial Device serial number, optional
+   */
+  public async push(from: string, to: string, serial?: string) {
+    return await this.execRawAuto([ 'push', from, to ], serial)
+  }
+
+  /**
+   * Pull file from remote device to local
+   * @param from Remote file to pull
+   * @param to Local path
+   * @param serial Device serial number, optional
+   */
+  public async pull(from: string, to: string, serial?: string) {
+    return await this.execRawAuto([ 'pull', from, to ], serial)
+  }
+
+  /**
    * Push a single package to the device and install it
    * @param packagePath Path to the APK file to be installed
    * @param extraOpts Extra installation options
