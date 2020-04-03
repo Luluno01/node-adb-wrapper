@@ -174,7 +174,7 @@ export class ADBProcess {
    * @param serial Device serial number, optional
    */
   public async remount(reboot?: boolean, serial?: string) {
-    const args = [ 'reboot' ]
+    const args = [ 'remount' ]
     if(reboot) args.push('-R')
     return (await this.execRawAuto(args, serial)).stdout
   }
