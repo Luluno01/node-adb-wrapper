@@ -76,12 +76,19 @@ export class ADBProcess {
   }
 
   /**
+   * Kill ADB server if any
+   */
+  public async killServer() {
+    return await this.execRaw([ 'kill-server' ])
+  }
+
+  /**
    * Run remote shell command
    * @param serial Device serial number, optional
    */
   public async shell(command: string, serial?: string) {
     assert(!command.match(/^\s*$/), 'Shell command must not be empty')
-    return (await this.execRawAuto([ 'shell', command ], serial)).stdout
+    return await this.execRawAuto([ 'shell', command ], serial)
   }
 
   /**
@@ -211,7 +218,7 @@ export class ADBProcess {
    * @param serial Device serial number, optional
    */
   public async whoami(serial?: string) {
-    return (await this.shell('whoami', serial)).trim()
+    return (await this.shell('whoami', serial)).stdout.trim()
   }
 
   /**
