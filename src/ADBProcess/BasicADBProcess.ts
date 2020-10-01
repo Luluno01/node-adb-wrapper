@@ -1,5 +1,6 @@
 import * as assert from 'assert'
 import { execFile as _execFile } from 'child_process'
+import { EventEmitter } from 'events'
 import { promisify } from 'util'
 const execFile = promisify(_execFile)
 
@@ -15,7 +16,7 @@ export class ADBWaitTimeoutError extends Error {
   public name = 'ADBWaitTimeoutError'
 }
 
-export class ADBProcess {
+export class BasicADBProcess extends EventEmitter {
 
   /**
    * Execute raw ADB command
@@ -308,4 +309,4 @@ export class ADBProcess {
   }
 }
 
-export default ADBProcess
+export default BasicADBProcess
