@@ -8,7 +8,7 @@ const execFile = promisify(_execFile)
 export const binaryName = 'adb'
 
 export namespace RegExps {
-  export const versionInfo = /^Android Debug Bridge version (?<adbVersion>[\d\w\-\.]+)\r?\nVersion (?<version>[\d\w\-\.]+)\r?\nInstalled as (?<installedAs>[\s\S]*?)\r?\n$/
+  export const versionInfo = /^Android Debug Bridge version (?<adbVersion>[\d\w\-\.]+)(\r?\nVersion (?<version>[\d\w\-\.]+)\r?\nInstalled as (?<installedAs>[\s\S]*?)\r?\n)?(\r?\nRevision (?<revision>[\d\w\-\.]+)\r?\n)?/
   export const devices = /^List of devices attached\r?\n(?<deviceList>[\s\S]*)/
 }
 
@@ -57,8 +57,8 @@ export class BasicADBProcess extends EventEmitter {
     assert(match, 'Cannot get ADB version, please check your ADB installation')
     return match.groups as {
       adbVersion: string
-      version: string
-      installedAs: string
+      version?: string
+      installedAs?: string
     }
   }
 
